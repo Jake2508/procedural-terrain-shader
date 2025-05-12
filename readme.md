@@ -8,6 +8,8 @@
 
 A Three.js shader for dynamically generating procedural terrain, with customisable fields.
 
+Live Link: [Procedural Terrain Shader](https://proceduralterrainshader.netlify.app/)
+
 ---
 
 ![Procedural Terrain Shader Promo](procedural-promo.jpg)
