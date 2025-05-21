@@ -6,9 +6,7 @@ import CustomShaderMaterial from "three-custom-shader-material/vanilla";
 import GUI from 'lil-gui'
 import terrainVertexShader from './shaders/includes/terrain/vertex.glsl';
 import terrainFragmentShader from './shaders/includes/terrain/fragment.glsl';
-
-// Add Brush Import - as a tech section
-// GLSL Shaders
+import woodPlankURL from './textures/wood_plank.png';
 
 /**
  * Base
@@ -130,7 +128,7 @@ scene.add(water)
  * Wood
  */
 const textureLoader = new THREE.TextureLoader();
-const woodTexture = textureLoader.load('textures/wood_plank.png'); // Replace with the path to your wood texture
+const woodTexture = textureLoader.load(woodPlankURL);
 
 // Create the wood material
 const woodMaterial = new THREE.MeshStandardMaterial({
