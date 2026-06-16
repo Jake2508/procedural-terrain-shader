@@ -110,7 +110,7 @@ debugObject.colorRock = '#bfbd8d'
 const uniforms = {
     uTime: new THREE.Uniform(0),
     uPositionFrequency: new THREE.Uniform(0.225),
-    uStrength: new THREE.Uniform(3.25),
+    uStrength: new THREE.Uniform(3),
     uWarpFrequency: new THREE.Uniform(1.25),
     uWarpStrength: new THREE.Uniform(0.245),
     uMinElevation: new THREE.Uniform(-0.9),
