@@ -17,3 +17,32 @@ body
     left: 0;
     outline: none;
 }
+
+.lil-gui
+{
+    --background-color: #4a2f1e;
+    --text-color: #fdf3e0;
+    --title-background-color: #c97a2b;
+    --title-text-color: #ffffff;
+    --widget-color: #7a4b2f;
+    --hover-color: #9c6c44;
+    --focus-color: #e8a33d;
+    --number-color: #ffd479;
+    --string-color: #9be564;
+    --font-family: 'Trebuchet MS', 'Segoe UI', Verdana, sans-serif;
+    --font-size: 12px;
+    --widget-border-radius: 8px;
+    --folder-indent: 10px;
+}
+
+.lil-gui.root
+{
+    border-radius: 14px;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
+    overflow: hidden;
+}
+
+.lil-gui .title
+{
+    font-weight: bold;
+}
