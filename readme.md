@@ -1,6 +1,6 @@
 # Procedural Terrain Shader
 
-**Repository for my game Three JS Terrain Shader**
+**Repository for my Three JS Terrain Shader**
 
 ---
 
