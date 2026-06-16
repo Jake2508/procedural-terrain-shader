@@ -6,6 +6,9 @@ import CustomShaderMaterial from "three-custom-shader-material/vanilla";
 import GUI from 'lil-gui'
 import terrainVertexShader from './shaders/includes/terrain/vertex.glsl';
 import terrainFragmentShader from './shaders/includes/terrain/fragment.glsl';
+import skyVertexShader from './shaders/includes/sky/vertex.glsl';
+import skyFragmentShader from './shaders/includes/sky/fragment.glsl';
+import { createToonGradientTexture } from './shaders/includes/toonGradient.js';
 import woodPlankURL from './textures/wood_plank.png';
 
 /**
@@ -17,6 +20,11 @@ const debugObject = {}
 
 // Canvas
 const canvas = document.querySelector('canvas.webgl')
+
+// Controls hint
+const controlsHint = document.querySelector('.controls-hint')
+document.querySelector('.controls-hint-close').addEventListener('click', () => controlsHint.classList.remove('visible'))
+THREE.DefaultLoadingManager.onLoad = () => controlsHint.classList.add('visible')
 
 // Scene
 const scene = new THREE.Scene()
@@ -30,10 +38,55 @@ const rgbeLoader = new RGBELoader()
 rgbeLoader.load('/spruit_sunrise.hdr', (environmentMap) =>
 {
     environmentMap.mapping = THREE.EquirectangularReflectionMapping
-    scene.backgroundBlurriness = 0.5
-    scene.environment = environmentMap
-    scene.background = new THREE.Color(0x87CEEB); // sky blue
+    scene.environment = environmentMap // kept for the water plane's transmission; the sky dome below owns the visible background
 })
+
+/**
+ * Toon shading
+ */
+const toonGradientMap = createToonGradientTexture(4)
+
+/**
+ * Sky
+ */
+debugObject.colorSkyHorizon = '#dff2ff'
+debugObject.colorSkyMid = '#69b8ff'
+debugObject.colorSkyZenith = '#1e5fae'
+
+const directionalLightPosition = new THREE.Vector3(6.25, 3, 4)
+
+const skyUniforms = {
+    uSkyColorHorizon: new THREE.Uniform(new THREE.Color(debugObject.colorSkyHorizon)),
+    uSkyColorMid: new THREE.Uniform(new THREE.Color(debugObject.colorSkyMid)),
+    uSkyColorZenith: new THREE.Uniform(new THREE.Color(debugObject.colorSkyZenith)),
+}
+
+const sky = new THREE.Mesh(
+    new THREE.SphereGeometry(70, 32, 16),
+    new THREE.ShaderMaterial({
+        vertexShader: skyVertexShader,
+        fragmentShader: skyFragmentShader,
+        uniforms: skyUniforms,
+        side: THREE.BackSide,
+        depthWrite: false,
+        fog: false
+    })
+)
+sky.renderOrder = - 1
+scene.add(sky)
+
+const skyFolder = gui.addFolder('Sky')
+skyFolder.addColor(debugObject, 'colorSkyHorizon').name('Sky Horizon').onChange(() => {
+    skyUniforms.uSkyColorHorizon.value.set(debugObject.colorSkyHorizon)
+    scene.fog.color.set(debugObject.colorSkyHorizon)
+})
+skyFolder.addColor(debugObject, 'colorSkyMid').name('Sky Color').onChange(() => skyUniforms.uSkyColorMid.value.set(debugObject.colorSkyMid))
+skyFolder.addColor(debugObject, 'colorSkyZenith').name('Deep Sky').onChange(() => skyUniforms.uSkyColorZenith.value.set(debugObject.colorSkyZenith))
+
+/**
+ * Fog
+ */
+scene.fog = new THREE.Fog(debugObject.colorSkyHorizon, 20, 50)
 
 
 /**
@@ -60,6 +113,7 @@ const uniforms = {
     uStrength: new THREE.Uniform(3),
     uWarpFrequency: new THREE.Uniform(1.25),
     uWarpStrength: new THREE.Uniform(0.245),
+    uMinElevation: new THREE.Uniform(-0.9),
 
     uColorWaterDeep: new THREE.Uniform(new THREE.Color(debugObject.colorWaterDeep)),
     uColorWaterSurface: new THREE.Uniform(new THREE.Color(debugObject.colorWaterSurface)),
@@ -69,32 +123,33 @@ const uniforms = {
     uColorRock: new THREE.Uniform(new THREE.Color(debugObject.colorRock)),
 }
 // Editor vars
-gui.add(uniforms.uPositionFrequency, 'value', 0, 1, 0.001).name('uPositionFrequency');
-gui.add(uniforms.uStrength, 'value', 0, 10, 0.001).name('uStrength');
-gui.add(uniforms.uWarpFrequency, 'value', 0, 10, 0.001).name('uWarpFrequency');
-gui.add(uniforms.uWarpStrength, 'value', 0, 1, 0.001).name('uWarpStrength');
+const terrainFolder = gui.addFolder('Terrain')
+terrainFolder.add(uniforms.uPositionFrequency, 'value', 0, 1, 0.001).name('Terrain Detail');
+terrainFolder.add(uniforms.uStrength, 'value', 0, 10, 0.001).name('Mountain Height');
+terrainFolder.add(uniforms.uWarpFrequency, 'value', 0, 10, 0.001).name('Terrain Warp Detail');
+terrainFolder.add(uniforms.uWarpStrength, 'value', 0, 1, 0.001).name('Terrain Warp Strength');
 
-gui.addColor(debugObject, 'colorWaterDeep').onChange(() => uniforms.uColorWaterDeep.value.set(debugObject.colorWaterDeep))
-gui.addColor(debugObject, 'colorWaterSurface').onChange(() => uniforms.uColorWaterSurface.value.set(debugObject.colorWaterSurface))
-gui.addColor(debugObject, 'colorSand').onChange(() => uniforms.uColorSand.value.set(debugObject.colorSand))
-gui.addColor(debugObject, 'colorGrass').onChange(() => uniforms.uColorGrass.value.set(debugObject.colorGrass))
-gui.addColor(debugObject, 'colorSnow').onChange(() => uniforms.uColorSnow.value.set(debugObject.colorSnow))
-gui.addColor(debugObject, 'colorRock').onChange(() => uniforms.uColorRock.value.set(debugObject.colorRock))
+terrainFolder.addColor(debugObject, 'colorWaterDeep').name('Deep Water').onChange(() => uniforms.uColorWaterDeep.value.set(debugObject.colorWaterDeep))
+terrainFolder.addColor(debugObject, 'colorWaterSurface').name('Shallow Water').onChange(() => uniforms.uColorWaterSurface.value.set(debugObject.colorWaterSurface))
+terrainFolder.addColor(debugObject, 'colorSand').name('Sand').onChange(() => uniforms.uColorSand.value.set(debugObject.colorSand))
+terrainFolder.addColor(debugObject, 'colorGrass').name('Grass').onChange(() => uniforms.uColorGrass.value.set(debugObject.colorGrass))
+terrainFolder.addColor(debugObject, 'colorSnow').name('Snow').onChange(() => uniforms.uColorSnow.value.set(debugObject.colorSnow))
+terrainFolder.addColor(debugObject, 'colorRock').name('Rock').onChange(() => uniforms.uColorRock.value.set(debugObject.colorRock))
 
 const material = new CustomShaderMaterial({
-    // CSM 
-    baseMaterial: THREE.MeshStandardMaterial,
+    // CSM
+    baseMaterial: THREE.MeshToonMaterial,
     vertexShader: terrainVertexShader,
     fragmentShader: terrainFragmentShader,
     uniforms: uniforms,
     silent: true,
 
-    // MeshStandardMaterial
-    metalness: 0, roughness: 0.5, color: '#85d534'
+    // MeshToonMaterial
+    color: '#85d534', gradientMap: toonGradientMap
 })
 
 const depthMaterial = new THREE.MeshDepthMaterial({
-    // CSM 
+    // CSM
     baseMaterial: THREE.MeshStandardMaterial,
     vertexShader: terrainVertexShader,
     uniforms: uniforms,
@@ -132,7 +187,7 @@ const woodTexture = textureLoader.load(woodPlankURL);
 
 // Create the wood material
 const woodMaterial = new THREE.MeshStandardMaterial({
-    map: woodTexture, metalness: 0.1, roughness: 0.6, color: 0xffffff          
+    map: woodTexture, metalness: 0.1, roughness: 0.6, color: 0xffffff
 });
 
 /**
@@ -155,7 +210,7 @@ scene.add(board)
  * Lights
  */
 const directionalLight = new THREE.DirectionalLight('#ffffff', 2.15)
-directionalLight.position.set(6.25, 3, 4)
+directionalLight.position.copy(directionalLightPosition)
 directionalLight.castShadow = true
 directionalLight.shadow.mapSize.set(1024, 1024)
 directionalLight.shadow.camera.near = 0.1
@@ -164,7 +219,12 @@ directionalLight.shadow.camera.top = 8
 directionalLight.shadow.camera.right = 8
 directionalLight.shadow.camera.bottom = -8
 directionalLight.shadow.camera.left = -8
+directionalLight.shadow.bias = - 0.001
+directionalLight.shadow.normalBias = 0.02
 scene.add(directionalLight)
+
+const hemisphereLight = new THREE.HemisphereLight('#bcd6f0', '#8a7355', 0.5)
+scene.add(hemisphereLight)
 
 /**
  * Sizes
@@ -194,7 +254,7 @@ window.addEventListener('resize', () =>
 /**
  * Camera
  */
-const camera = new THREE.PerspectiveCamera(35, sizes.width / sizes.height, 0.1, 100)
+const camera = new THREE.PerspectiveCamera(35, sizes.width / sizes.height, 0.1, 200)
 camera.position.set(-10, 6, -2)
 scene.add(camera)
 
@@ -206,8 +266,8 @@ controls.enablePan = false;
 controls.enableDamping = true;
 controls.dampingFactor = 0.1;
 controls.maxPolarAngle = Math.PI / 2 - 0.2;
-controls.minDistance = 5;   
-controls.maxDistance = 45; 
+controls.minDistance = 5;
+controls.maxDistance = 25;
 
 /**
  * Renderer
@@ -216,7 +276,7 @@ const renderer = new THREE.WebGLRenderer({
     canvas: canvas,
     antialias: true
 })
-renderer.shadowMap.enabled = true 
+renderer.shadowMap.enabled = true
 renderer.shadowMap.type = THREE.PCFSoftShadowMap
 renderer.toneMapping = THREE.ACESFilmicToneMapping
 renderer.toneMappingExposure = 0.7

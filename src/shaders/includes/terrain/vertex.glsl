@@ -3,6 +3,7 @@ uniform float uPositionFrequency;
 uniform float uStrength;
 uniform float uWarpFrequency;
 uniform float uWarpStrength;
+uniform float uMinElevation;
 
 varying vec3 vPosition;
 varying float vUpDot;
@@ -25,6 +26,9 @@ float getElevation(vec2 position)
     float elevationSign = sign(elevation);
     elevation = pow(abs(elevation), 2.0) * elevationSign;
     elevation *= uStrength;
+
+    // Flat sea floor - stops deep trenches from ever reaching the box's bottom
+    elevation = max(elevation, uMinElevation);
 
     return elevation;
 }
