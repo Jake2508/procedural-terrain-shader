@@ -21,6 +21,10 @@ const debugObject = {}
 // Canvas
 const canvas = document.querySelector('canvas.webgl')
 
+// Controls hint
+const controlsHint = document.querySelector('.controls-hint')
+document.querySelector('.controls-hint-close').addEventListener('click', () => controlsHint.classList.add('hidden'))
+
 // Scene
 const scene = new THREE.Scene()
 
