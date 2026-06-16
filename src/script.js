@@ -23,7 +23,8 @@ const canvas = document.querySelector('canvas.webgl')
 
 // Controls hint
 const controlsHint = document.querySelector('.controls-hint')
-document.querySelector('.controls-hint-close').addEventListener('click', () => controlsHint.classList.add('hidden'))
+document.querySelector('.controls-hint-close').addEventListener('click', () => controlsHint.classList.remove('visible'))
+THREE.DefaultLoadingManager.onLoad = () => controlsHint.classList.add('visible')
 
 // Scene
 const scene = new THREE.Scene()
@@ -109,7 +110,7 @@ debugObject.colorRock = '#bfbd8d'
 const uniforms = {
     uTime: new THREE.Uniform(0),
     uPositionFrequency: new THREE.Uniform(0.225),
-    uStrength: new THREE.Uniform(2.625),
+    uStrength: new THREE.Uniform(3.25),
     uWarpFrequency: new THREE.Uniform(1.25),
     uWarpStrength: new THREE.Uniform(0.245),
     uMinElevation: new THREE.Uniform(-0.9),
@@ -265,8 +266,8 @@ controls.enablePan = false;
 controls.enableDamping = true;
 controls.dampingFactor = 0.1;
 controls.maxPolarAngle = Math.PI / 2 - 0.2;
-controls.minDistance = 5;   
-controls.maxDistance = 45; 
+controls.minDistance = 5;
+controls.maxDistance = 25;
 
 /**
  * Renderer
