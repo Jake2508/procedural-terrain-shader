@@ -108,6 +108,7 @@ const uniforms = {
     uStrength: new THREE.Uniform(2.625),
     uWarpFrequency: new THREE.Uniform(1.25),
     uWarpStrength: new THREE.Uniform(0.245),
+    uMinElevation: new THREE.Uniform(-0.9),
 
     uColorWaterDeep: new THREE.Uniform(new THREE.Color(debugObject.colorWaterDeep)),
     uColorWaterSurface: new THREE.Uniform(new THREE.Color(debugObject.colorWaterSurface)),
@@ -143,7 +144,7 @@ const material = new CustomShaderMaterial({
 })
 
 const depthMaterial = new THREE.MeshDepthMaterial({
-    // CSM 
+    // CSM
     baseMaterial: THREE.MeshStandardMaterial,
     vertexShader: terrainVertexShader,
     uniforms: uniforms,
@@ -270,7 +271,7 @@ const renderer = new THREE.WebGLRenderer({
     canvas: canvas,
     antialias: true
 })
-renderer.shadowMap.enabled = true 
+renderer.shadowMap.enabled = true
 renderer.shadowMap.type = THREE.PCFSoftShadowMap
 renderer.toneMapping = THREE.ACESFilmicToneMapping
 renderer.toneMappingExposure = 0.7
